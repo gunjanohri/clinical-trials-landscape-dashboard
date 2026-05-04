@@ -24,7 +24,7 @@ DASHBOARD_DATA_PATH = OUTPUT_DIR / "dashboard_trials.csv"
 CLEANED_DATA_PATH = OUTPUT_DIR / "cleaned_industry_trials.csv"
 SUMMARY_PATH = OUTPUT_DIR / "summary.json"
 DEFAULT_START_YEAR = 2000
-DEFAULT_END_YEAR = 2025
+DEFAULT_END_YEAR = 2026
 CHART_HEIGHT = 360
 
 PALETTE = {
@@ -540,7 +540,7 @@ def build_dashboard_layout() -> html.Div:
                                 (
                                     "Interactive view of industry-funded interventional "
                                     "drug, biologic, genetic, and combination-product "
-                                    "trials from 2000-2025."
+                                    "trials from 2000-2026."
                                 ),
                                 className="hero-description",
                             ),

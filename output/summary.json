@@ -1,116 +1,116 @@
 {
   "raw_trial_count": 583272,
-  "comparable_trial_count": 70260,
-  "cleaned_trial_count": 60570,
-  "inactive_trial_count": 9690,
-  "excluded_trial_count": 522702,
-  "retained_pct": 10.4,
-  "excluded_pct": 89.6,
+  "comparable_trial_count": 71637,
+  "cleaned_trial_count": 61940,
+  "inactive_trial_count": 9697,
+  "excluded_trial_count": 521332,
+  "retained_pct": 10.6,
+  "excluded_pct": 89.4,
   "start_year_min": 2000,
-  "start_year_max": 2025,
+  "start_year_max": 2026,
   "filter_steps": [
     "Started with the full ClinicalTrials.gov CSV export.",
     "Limited the set to industry-funded interventional studies.",
     "Kept drug, biological, genetic, and combination-product interventions.",
     "Excluded device, behavioral, procedure, diagnostic-test, dietary-supplement, other, and radiation-led intervention rows.",
-    "Excluded healthy-only condition rows and limited the time window to start years 2000-2025.",
+    "Excluded healthy-only condition rows and limited the time window to start years 2000-2026.",
     "Default dashboard view removes terminated, withdrawn, suspended, and unavailable studies, but an inactive-trial toggle can add them back.",
     "When Start Date was missing in this export, used First Posted as the fallback start-date proxy."
   ],
   "top_conditions": [
     {
       "Condition": "Type 2 Diabetes Mellitus",
-      "Trial Count": 1652
+      "Trial Count": 1659
     },
     {
       "Condition": "Advanced Solid Tumor",
-      "Trial Count": 1082
-    },
-    {
-      "Condition": "Asthma",
-      "Trial Count": 927
+      "Trial Count": 1119
     },
     {
       "Condition": "Solid Tumor",
-      "Trial Count": 924
+      "Trial Count": 947
+    },
+    {
+      "Condition": "Asthma",
+      "Trial Count": 933
     },
     {
       "Condition": "Breast Cancer",
-      "Trial Count": 744
+      "Trial Count": 757
     }
   ],
   "top_countries": [
     {
       "Country": "United States",
-      "Trial Count": 28861
+      "Trial Count": 29221
     },
     {
       "Country": "China",
-      "Trial Count": 7117
+      "Trial Count": 7595
     },
     {
       "Country": "Japan",
-      "Trial Count": 2329
+      "Trial Count": 2340
     },
     {
       "Country": "South Korea",
-      "Trial Count": 1893
+      "Trial Count": 1934
     },
     {
       "Country": "Germany",
-      "Trial Count": 1769
+      "Trial Count": 1776
     }
   ],
   "intervention_mix": [
     {
       "Intervention Type": "DRUG",
-      "Trial Count": 53177
+      "Trial Count": 54372
     },
     {
       "Intervention Type": "BIOLOGICAL",
-      "Trial Count": 6842
+      "Trial Count": 6993
     },
     {
       "Intervention Type": "COMBINATION_PRODUCT",
-      "Trial Count": 303
+      "Trial Count": 318
     },
     {
       "Intervention Type": "GENETIC",
-      "Trial Count": 248
+      "Trial Count": 257
     }
   ],
   "phase_mix": [
     {
       "Phase": "PHASE3",
-      "Trial Count": 17442
+      "Trial Count": 17763
     },
     {
       "Phase": "PHASE1",
-      "Trial Count": 16326
+      "Trial Count": 16760
     },
     {
       "Phase": "PHASE2",
-      "Trial Count": 15938
+      "Trial Count": 16266
     },
     {
       "Phase": "PHASE4",
-      "Trial Count": 4998
+      "Trial Count": 5034
     },
     {
       "Phase": "PHASE1|PHASE2",
-      "Trial Count": 4385
+      "Trial Count": 4570
     },
     {
       "Phase": "PHASE2|PHASE3",
-      "Trial Count": 1113
+      "Trial Count": 1153
     },
     {
       "Phase": "EARLY_PHASE1",
-      "Trial Count": 368
+      "Trial Count": 394
     }
   ],
   "duration_years": {
-    "count": 52791.0,
+    "count": 54106.0,
     "mean": 2.56,
     "median": 1.9,
     "min": 0.0,

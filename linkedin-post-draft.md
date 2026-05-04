@@ -12,13 +12,13 @@ Instead of treating the registry as one giant bucket, I filtered the dataset to 
 - interventional trials
 - drug, biologic, genetic, and combination-product interventions
 - disclosed phases
-- studies starting between `2000` and `2025`
+- studies starting between `2000` and `2026`
 
 A few patterns stood out:
 
 1. Trial activity appears heavily concentrated in a handful of geographies, especially the `United States`, `United Kingdom`, and `China`, with strong additional activity in `Japan` and `South Korea`.
 2. On the disease side, large recurring clusters include `Type 2 Diabetes Mellitus`, `Asthma`, `Breast Cancer`, `Hypertension`, `Rheumatoid Arthritis`, and `Schizophrenia`.
-3. In the more recent `2015-2025` window, `COVID-19` clearly shows up as a major temporary demand shock in the registry.
+3. In the more recent `2015-2026` window, `COVID-19` clearly shows up as a major temporary demand shock in the registry.
 4. Within this filtered dataset, `DRUG` studies dominate, while `BIOLOGICAL`, `GENETIC`, and `COMBINATION_PRODUCT` programs form smaller but still meaningful slices.
 5. Trial durations appear to cluster heavily in the `0-2 year` range, although that result depends on how partial dates are recorded in the registry.
 
@@ -46,13 +46,13 @@ For the first pass, I filtered the data to:
 - industry-funded trials
 - drug, biologic, genetic, and combination-product interventions
 - studies with disclosed phases
-- start years from `2000-2025`
+- start years from `2000-2026`
 
 Some early observations:
 
 - The `United States` remains the anchor geography, but `United Kingdom`, `China`, `Japan`, and `South Korea` also show strong trial activity in the filtered set.
 - Conditions such as `Type 2 Diabetes Mellitus`, `Asthma`, `Breast Cancer`, `Hypertension`, and `Rheumatoid Arthritis` appear repeatedly near the top.
-- `COVID-19` becomes much more visible when narrowing to the `2015-2025` window.
+- `COVID-19` becomes much more visible when narrowing to the `2015-2026` window.
 - Trial durations skew short in a simple registry-based calculation, which is interesting but also a reminder to handle partial dates carefully.
 
 The most useful takeaway was not just the output charts.

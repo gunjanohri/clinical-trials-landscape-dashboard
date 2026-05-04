@@ -115,7 +115,7 @@ FILTER_STEPS = [
     "Limited the set to industry-funded interventional studies.",
     "Kept drug, biological, genetic, and combination-product interventions.",
     "Excluded device, behavioral, procedure, diagnostic-test, dietary-supplement, other, and radiation-led intervention rows.",
-    "Excluded healthy-only condition rows and limited the time window to start years 2000-2025.",
+    "Excluded healthy-only condition rows and limited the time window to start years 2000-2026.",
     "Default dashboard view removes terminated, withdrawn, suspended, and unavailable studies, but an inactive-trial toggle can add them back.",
     "When Start Date was missing in this export, used First Posted as the fallback start-date proxy.",
 ]
@@ -147,7 +147,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--end-year",
         type=int,
-        default=2025,
+        default=2026,
         help="Inclusive upper bound for study start year.",
     )
     return parser.parse_args()

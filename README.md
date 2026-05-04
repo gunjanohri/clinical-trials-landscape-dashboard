@@ -8,7 +8,7 @@ The most credible first story is not "all clinical trials."
 
 It is:
 
-`A filtered analysis of industry-sponsored drug, biologic, genetic, and combination-product trials on ClinicalTrials.gov from 2000-2025.`
+`A filtered analysis of industry-sponsored drug, biologic, genetic, and combination-product trials on ClinicalTrials.gov from 2000-2026.`
 
 That framing matches the notebook work you already did and avoids overstating what the dataset represents.
 
@@ -20,7 +20,7 @@ Included:
 - interventional studies
 - studies with disclosed phases
 - drug, biological, genetic, and combination-product interventions
-- start years from `2000` through `2025`
+- start years from `2000` through `2026`
 
 Excluded:
 
