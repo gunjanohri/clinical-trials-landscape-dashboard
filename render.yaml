@@ -2,6 +2,5 @@ services:
   - type: web
     name: clinical-trials-dashboard
     env: python
-    rootDir: research/clinical-trials-landscape
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn dashboard:server --bind 0.0.0.0:$PORT
