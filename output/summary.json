@@ -1,0 +1,104 @@
+{
+  "cleaned_trial_count": 60570,
+  "start_year_min": 2000,
+  "start_year_max": 2025,
+  "top_conditions": [
+    {
+      "Condition": "Type 2 Diabetes Mellitus",
+      "Trial Count": 1652
+    },
+    {
+      "Condition": "Advanced Solid Tumor",
+      "Trial Count": 1082
+    },
+    {
+      "Condition": "Asthma",
+      "Trial Count": 927
+    },
+    {
+      "Condition": "Solid Tumor",
+      "Trial Count": 924
+    },
+    {
+      "Condition": "Breast Cancer",
+      "Trial Count": 744
+    }
+  ],
+  "top_countries": [
+    {
+      "Country": "United States",
+      "Trial Count": 28861
+    },
+    {
+      "Country": "China",
+      "Trial Count": 7117
+    },
+    {
+      "Country": "Japan",
+      "Trial Count": 2329
+    },
+    {
+      "Country": "South Korea",
+      "Trial Count": 1893
+    },
+    {
+      "Country": "Germany",
+      "Trial Count": 1769
+    }
+  ],
+  "intervention_mix": [
+    {
+      "Intervention Type": "DRUG",
+      "Trial Count": 53177
+    },
+    {
+      "Intervention Type": "BIOLOGICAL",
+      "Trial Count": 6842
+    },
+    {
+      "Intervention Type": "COMBINATION_PRODUCT",
+      "Trial Count": 303
+    },
+    {
+      "Intervention Type": "GENETIC",
+      "Trial Count": 248
+    }
+  ],
+  "phase_mix": [
+    {
+      "Phase": "PHASE3",
+      "Trial Count": 17442
+    },
+    {
+      "Phase": "PHASE1",
+      "Trial Count": 16326
+    },
+    {
+      "Phase": "PHASE2",
+      "Trial Count": 15938
+    },
+    {
+      "Phase": "PHASE4",
+      "Trial Count": 4998
+    },
+    {
+      "Phase": "PHASE1|PHASE2",
+      "Trial Count": 4385
+    },
+    {
+      "Phase": "PHASE2|PHASE3",
+      "Trial Count": 1113
+    },
+    {
+      "Phase": "EARLY_PHASE1",
+      "Trial Count": 368
+    }
+  ],
+  "duration_years": {
+    "count": 52791.0,
+    "mean": 2.56,
+    "median": 1.9,
+    "min": 0.0,
+    "max": 50.5
+  }
+}
