@@ -62,6 +62,16 @@ PHASE_ORDER = [
     "PHASE4",
 ]
 
+PHASE_LABELS = {
+    "EARLY_PHASE1": "Early P1",
+    "PHASE1": "Phase 1",
+    "PHASE1|PHASE2": "Phase 1/2",
+    "PHASE2": "Phase 2",
+    "PHASE2|PHASE3": "Phase 2/3",
+    "PHASE3": "Phase 3",
+    "PHASE4": "Phase 4",
+}
+
 
 def load_project_summary() -> dict[str, object]:
     if not SUMMARY_PATH.exists():
@@ -225,6 +235,10 @@ def ordered_phases(values: list[str]) -> list[str]:
     return known + remaining
 
 
+def phase_label(phase: str) -> str:
+    return PHASE_LABELS.get(phase, phase.replace("|", "/").title())
+
+
 def filter_trials(
     df: pd.DataFrame,
     year_range: list[int] | tuple[int, int],
@@ -300,17 +314,31 @@ def build_phase_mix_figure(filtered: pd.DataFrame) -> go.Figure:
     ordered_columns = [phase for phase in PHASE_ORDER if phase in mix.columns]
     remaining = [phase for phase in mix.columns if phase not in ordered_columns]
     mix = mix[ordered_columns + remaining]
+    display_columns = [phase_label(phase) for phase in mix.columns]
+    phase_mix_display = mix.copy()
+    phase_mix_display.columns = display_columns
 
     fig = px.bar(
-        mix.reset_index(),
+        phase_mix_display.reset_index(),
         x="Start Year",
-        y=mix.columns.tolist(),
+        y=display_columns,
         color_discrete_sequence=PHASE_COLOR_SEQUENCE,
     )
     fig.update_layout(barmode="stack")
     fig = style_figure(fig, "Phase Mix by Start Year")
     fig.update_xaxes(tickangle=-45, automargin=True, tickfont={"size": 10})
-    fig.update_layout(margin={"l": 24, "r": 24, "t": 64, "b": 88})
+    fig.update_layout(
+        margin={"l": 24, "r": 132, "t": 64, "b": 88},
+        legend={
+            "orientation": "v",
+            "yanchor": "top",
+            "y": 1,
+            "xanchor": "left",
+            "x": 1.02,
+            "font": {"size": 11},
+            "title": {"text": "Phase"},
+        },
+    )
     return fig
 
 
@@ -408,13 +436,15 @@ def build_duration_figure(filtered: pd.DataFrame) -> go.Figure:
 
     ordered_phases = [phase for phase in PHASE_ORDER if phase in duration["Phases"].unique()]
     remaining = [phase for phase in duration["Phases"].unique() if phase not in ordered_phases]
+    ordered_phase_labels = [phase_label(phase) for phase in ordered_phases + remaining]
+    duration["Phase Label"] = duration["Phases"].map(phase_label)
 
     fig = px.box(
         duration,
-        x="Phases",
+        x="Phase Label",
         y="Duration (years)",
-        category_orders={"Phases": ordered_phases + remaining},
-        color="Phases",
+        category_orders={"Phase Label": ordered_phase_labels},
+        color="Phase Label",
         color_discrete_sequence=PHASE_COLOR_SEQUENCE,
         points=False,
     )
