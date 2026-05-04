@@ -28,16 +28,29 @@ DEFAULT_END_YEAR = 2025
 CHART_HEIGHT = 360
 
 PALETTE = {
-    "teal": "#0f766e",
+    "navy_dark": "#19327a",
     "navy": "#1d4ed8",
-    "copper": "#b45309",
-    "rose": "#be123c",
-    "plum": "#7c3aed",
+    "navy_light": "#7ea6ff",
+    "navy_pale": "#d7e5ff",
+    "teal_dark": "#115e59",
+    "teal": "#0f766e",
+    "teal_light": "#68b8b0",
+    "teal_pale": "#d8f1ee",
     "ink": "#172033",
     "muted": "#64748b",
     "paper": "#fffdf9",
     "line": "#d8d2c6",
 }
+
+PHASE_COLOR_SEQUENCE = [
+    PALETTE["navy_dark"],
+    PALETTE["navy"],
+    PALETTE["navy_light"],
+    PALETTE["teal_dark"],
+    PALETTE["teal"],
+    PALETTE["teal_light"],
+    PALETTE["navy_pale"],
+]
 
 PHASE_ORDER = [
     "EARLY_PHASE1",
@@ -292,18 +305,13 @@ def build_phase_mix_figure(filtered: pd.DataFrame) -> go.Figure:
         mix.reset_index(),
         x="Start Year",
         y=mix.columns.tolist(),
-        color_discrete_sequence=[
-            PALETTE["navy"],
-            PALETTE["teal"],
-            PALETTE["copper"],
-            PALETTE["rose"],
-            PALETTE["plum"],
-            "#2563eb",
-            "#0f172a",
-        ],
+        color_discrete_sequence=PHASE_COLOR_SEQUENCE,
     )
     fig.update_layout(barmode="stack")
-    return style_figure(fig, "Phase Mix by Start Year")
+    fig = style_figure(fig, "Phase Mix by Start Year")
+    fig.update_xaxes(tickangle=-45, automargin=True, tickfont={"size": 10})
+    fig.update_layout(margin={"l": 24, "r": 24, "t": 64, "b": 88})
+    return fig
 
 
 def build_top_countries_figure(filtered: pd.DataFrame) -> go.Figure:
@@ -328,7 +336,7 @@ def build_top_countries_figure(filtered: pd.DataFrame) -> go.Figure:
         y="Country",
         orientation="h",
         color="Trial Count",
-        color_continuous_scale=["#d9f2ee", PALETTE["teal"]],
+        color_continuous_scale=[PALETTE["teal_pale"], PALETTE["teal_dark"]],
     )
     fig.update_coloraxes(showscale=False)
     return style_figure(fig, "Top Countries by First Listed Site")
@@ -355,10 +363,41 @@ def build_top_conditions_figure(filtered: pd.DataFrame) -> go.Figure:
         y="Condition",
         orientation="h",
         color="Trial Count",
-        color_continuous_scale=["#fde7d0", PALETTE["copper"]],
+        color_continuous_scale=[PALETTE["navy_pale"], PALETTE["navy_dark"]],
     )
     fig.update_coloraxes(showscale=False)
     return style_figure(fig, "Most Frequent Conditions")
+
+
+def build_top_sponsors_figure(filtered: pd.DataFrame) -> go.Figure:
+    if filtered.empty:
+        return build_empty_figure("No sponsor distribution available for the current filters.")
+
+    sponsor_counts = (
+        filtered["Sponsor"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .loc[lambda s: s.ne("") & s.ne("Unspecified")]
+        .value_counts()
+        .head(10)
+        .sort_values()
+        .rename_axis("Sponsor")
+        .reset_index(name="Trial Count")
+    )
+    if sponsor_counts.empty:
+        return build_empty_figure("No sponsor values are available for the selected rows.")
+
+    fig = px.bar(
+        sponsor_counts,
+        x="Trial Count",
+        y="Sponsor",
+        orientation="h",
+        color="Trial Count",
+        color_continuous_scale=[PALETTE["teal_pale"], PALETTE["teal_dark"]],
+    )
+    fig.update_coloraxes(showscale=False)
+    return style_figure(fig, "Top Sponsors by Trial Count")
 
 
 def build_duration_figure(filtered: pd.DataFrame) -> go.Figure:
@@ -376,15 +415,7 @@ def build_duration_figure(filtered: pd.DataFrame) -> go.Figure:
         y="Duration (years)",
         category_orders={"Phases": ordered_phases + remaining},
         color="Phases",
-        color_discrete_sequence=[
-            PALETTE["navy"],
-            PALETTE["teal"],
-            PALETTE["copper"],
-            PALETTE["rose"],
-            PALETTE["plum"],
-            "#2563eb",
-            "#0f172a",
-        ],
+        color_discrete_sequence=PHASE_COLOR_SEQUENCE,
         points=False,
     )
     fig.update_yaxes(title="Duration (years)")
@@ -751,6 +782,10 @@ def build_dashboard_layout() -> html.Div:
                                 children=[dcc.Graph(id="top-conditions-graph", style={"height": CHART_HEIGHT})],
                             ),
                             html.Article(
+                                className="panel chart-card",
+                                children=[dcc.Graph(id="top-sponsors-graph", style={"height": CHART_HEIGHT})],
+                            ),
+                            html.Article(
                                 className="panel chart-card chart-card-wide",
                                 children=[dcc.Graph(id="duration-graph", style={"height": CHART_HEIGHT})],
                             ),
@@ -857,6 +892,7 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
         Output("phase-mix-graph", "figure"),
         Output("top-countries-graph", "figure"),
         Output("top-conditions-graph", "figure"),
+        Output("top-sponsors-graph", "figure"),
         Output("duration-graph", "figure"),
         Output("table-summary", "children"),
         Output("trials-table", "data"),
@@ -874,7 +910,7 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
         intervention_types: list[str] | None,
         inactive_toggle: list[str] | None,
         condition_query: str | None,
-    ) -> tuple[str, str, str, str, str, str, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, str, list[dict[str, object]]]:
+    ) -> tuple[str, str, str, str, str, str, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, str, list[dict[str, object]]]:
         include_inactive = bool(inactive_toggle and "include_inactive" in inactive_toggle)
         filtered = filter_trials(
             TRIALS_DF,
@@ -918,6 +954,7 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
             build_phase_mix_figure(filtered),
             build_top_countries_figure(filtered),
             build_top_conditions_figure(filtered),
+            build_top_sponsors_figure(filtered),
             build_duration_figure(filtered),
             table_summary,
             table_rows,

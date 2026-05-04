@@ -1,16 +1,18 @@
 :root {
   color-scheme: light;
-  --bg: #f3eee7;
-  --bg-soft: #efe7dc;
-  --paper: rgba(255, 253, 249, 0.94);
-  --paper-strong: #fffdf9;
+  --bg: #eef4fb;
+  --bg-soft: #e7f0f8;
+  --paper: rgba(252, 254, 255, 0.94);
+  --paper-strong: #ffffff;
   --ink: #172033;
   --muted: #5f6b7b;
-  --line: rgba(116, 98, 80, 0.16);
+  --line: rgba(62, 91, 126, 0.16);
+  --navy-dark: #19327a;
   --navy: #1d4ed8;
+  --navy-light: #7ea6ff;
+  --teal-dark: #115e59;
   --teal: #0f766e;
-  --copper: #b45309;
-  --rose: #be123c;
+  --teal-light: #68b8b0;
   --shadow: 0 22px 52px rgba(23, 32, 51, 0.08);
   --radius-xl: 28px;
   --radius-lg: 22px;
@@ -29,8 +31,8 @@ body {
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 24rem),
-    radial-gradient(circle at right 10% top 15%, rgba(180, 83, 9, 0.1), transparent 18rem),
-    linear-gradient(180deg, #f7f2eb 0%, #f3eee7 48%, #eee6db 100%);
+    radial-gradient(circle at right 10% top 15%, rgba(29, 78, 216, 0.1), transparent 18rem),
+    linear-gradient(180deg, #f4f8fd 0%, #eef4fb 48%, #e7eff8 100%);
 }
 
 .dashboard-shell {
