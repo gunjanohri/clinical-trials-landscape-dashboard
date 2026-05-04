@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from dash import Dash, Input, Output, dash_table, dcc, html
 
 from build_clinical_trials_landscape import (
+    INACTIVE_STATUSES,
     INTERVENTION_PRIORITY,
     build_clean_dataset,
     validate_columns,
@@ -69,13 +70,14 @@ def load_dashboard_dataset() -> tuple[pd.DataFrame | None, str | None]:
     if RAW_DATA_PATH.exists():
         raw_df = pd.read_csv(RAW_DATA_PATH)
         validate_columns(raw_df)
-        cleaned = build_clean_dataset(
+        comparable = build_clean_dataset(
             raw_df,
             start_year=DEFAULT_START_YEAR,
             end_year=DEFAULT_END_YEAR,
+            include_inactive=True,
         )
-        cleaned.to_csv(CLEANED_DATA_PATH, index=False)
-        return prepare_dashboard_dataset(cleaned), None
+        comparable.to_csv(DASHBOARD_DATA_PATH, index=False)
+        return prepare_dashboard_dataset(comparable), None
 
     return None, (
         "No dataset found yet. Place the ClinicalTrials.gov export at "
@@ -92,10 +94,16 @@ def prepare_dashboard_dataset(df: pd.DataFrame) -> pd.DataFrame:
             work[column] = pd.to_datetime(work[column], errors="coerce")
 
     for column in ("Start Year", "Completion Year"):
-        work[column] = pd.to_numeric(work[column], errors="coerce").astype("Int64")
+        if column in work.columns:
+            work[column] = pd.to_numeric(work[column], errors="coerce").astype("Int64")
+        else:
+            work[column] = pd.Series(pd.NA, index=work.index, dtype="Int64")
 
     for column in ("Duration (months)", "Duration (years)", "Enrollment"):
-        work[column] = pd.to_numeric(work[column], errors="coerce")
+        if column in work.columns:
+            work[column] = pd.to_numeric(work[column], errors="coerce")
+        else:
+            work[column] = pd.NA
 
     work["Country"] = work["Country"].fillna("Unspecified")
     work["Intervention_Type"] = work["Intervention_Type"].fillna("Unspecified")
@@ -113,6 +121,10 @@ def prepare_dashboard_dataset(df: pd.DataFrame) -> pd.DataFrame:
         lambda nct: f"https://clinicaltrials.gov/study/{nct}"
     )
     work["Condition_Search_Text"] = work["Normalized_Conditions"].str.lower()
+    work["Is_Inactive"] = work["Study Status"].isin(INACTIVE_STATUSES)
+    work["Status_Group"] = work["Is_Inactive"].map(
+        lambda value: "Inactive" if value else "Active or ongoing"
+    )
 
     return work
 
@@ -207,6 +219,7 @@ def filter_trials(
     phases: list[str] | None,
     intervention_types: list[str] | None,
     condition_query: str | None,
+    include_inactive: bool,
 ) -> pd.DataFrame:
     filtered = df.copy()
 
@@ -214,6 +227,9 @@ def filter_trials(
     filtered = filtered[
         filtered["Start Year"].between(start_year, end_year, inclusive="both")
     ].copy()
+
+    if not include_inactive:
+        filtered = filtered[~filtered["Is_Inactive"]].copy()
 
     if countries:
         filtered = filtered[filtered["Country"].isin(countries)].copy()
@@ -395,6 +411,7 @@ def build_table_rows(filtered: pd.DataFrame) -> list[dict[str, object]]:
     columns = [
         "NCT_Link",
         "Study Title",
+        "Study Status",
         "Sponsor",
         "Primary_Condition_Label",
         "Country",
@@ -440,7 +457,9 @@ else:
     INTERVENTION_OPTIONS = INTERVENTION_PRIORITY[:]
 
 RAW_TRIAL_COUNT = PROJECT_SUMMARY.get("raw_trial_count")
+COMPARABLE_TRIAL_COUNT = PROJECT_SUMMARY.get("comparable_trial_count")
 CLEANED_TRIAL_COUNT = PROJECT_SUMMARY.get("cleaned_trial_count")
+INACTIVE_TRIAL_COUNT = PROJECT_SUMMARY.get("inactive_trial_count")
 EXCLUDED_TRIAL_COUNT = PROJECT_SUMMARY.get("excluded_trial_count")
 EXCLUDED_PCT = PROJECT_SUMMARY.get("excluded_pct")
 FILTER_STEPS = PROJECT_SUMMARY.get("filter_steps", [])
@@ -598,6 +617,23 @@ def build_dashboard_layout() -> html.Div:
                             html.Div(
                                 className="filter-field",
                                 children=[
+                                    html.Label("Inactive studies", htmlFor="inactive-toggle"),
+                                    dcc.Checklist(
+                                        id="inactive-toggle",
+                                        options=[
+                                            {
+                                                "label": "Include terminated, withdrawn, suspended, and unavailable trials",
+                                                "value": "include_inactive",
+                                            }
+                                        ],
+                                        value=[],
+                                        className="inactive-toggle",
+                                    ),
+                                ],
+                            ),
+                            html.Div(
+                                className="filter-field",
+                                children=[
                                     html.Label("Condition keyword", htmlFor="condition-search"),
                                     dcc.Input(
                                         id="condition-search",
@@ -668,7 +704,12 @@ def build_dashboard_layout() -> html.Div:
                                 ],
                             ),
                             html.P(
-                                "This published build focuses on comparable industry-sponsored interventional drug-development records, not all studies on ClinicalTrials.gov."
+                                (
+                                    f"The default view excludes {INACTIVE_TRIAL_COUNT:,} inactive rows from a comparable base of {COMPARABLE_TRIAL_COUNT:,} rows. "
+                                    "Use the toggle to add terminated, withdrawn, suspended, and unavailable studies back into the analysis."
+                                    if INACTIVE_TRIAL_COUNT is not None and COMPARABLE_TRIAL_COUNT is not None
+                                    else "This published build focuses on comparable industry-sponsored interventional drug-development records, not all studies on ClinicalTrials.gov."
+                                )
                             ),
                         ],
                     ),
@@ -732,6 +773,7 @@ def build_dashboard_layout() -> html.Div:
                         columns=[
                             {"name": "NCT Number", "id": "NCT Number", "presentation": "markdown"},
                             {"name": "Study Title", "id": "Study Title"},
+                            {"name": "Study Status", "id": "Study Status"},
                             {"name": "Sponsor", "id": "Sponsor"},
                             {"name": "Condition", "id": "Condition"},
                             {"name": "Country", "id": "Country"},
@@ -822,6 +864,7 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
         Input("country-dropdown", "value"),
         Input("phase-dropdown", "value"),
         Input("intervention-dropdown", "value"),
+        Input("inactive-toggle", "value"),
         Input("condition-search", "value"),
     )
     def update_dashboard(
@@ -829,8 +872,10 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
         countries: list[str] | None,
         phases: list[str] | None,
         intervention_types: list[str] | None,
+        inactive_toggle: list[str] | None,
         condition_query: str | None,
     ) -> tuple[str, str, str, str, str, str, go.Figure, go.Figure, go.Figure, go.Figure, go.Figure, str, list[dict[str, object]]]:
+        include_inactive = bool(inactive_toggle and "include_inactive" in inactive_toggle)
         filtered = filter_trials(
             TRIALS_DF,
             year_range=year_range,
@@ -838,6 +883,7 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
             phases=phases,
             intervention_types=intervention_types,
             condition_query=condition_query,
+            include_inactive=include_inactive,
         )
 
         total_trials = len(filtered)
@@ -850,9 +896,10 @@ if TRIALS_DF is not None and not TRIALS_DF.empty:
         country_count = specified_countries.nunique()
         condition_count = explode_conditions(filtered)["Condition"].nunique()
         query_label = condition_query.strip() if condition_query else "all conditions"
+        status_scope = "including inactive studies" if include_inactive else "excluding inactive studies"
         summary = (
             f"Showing {format_stat(total_trials)} trials across {format_stat(country_count)} countries "
-            f"and {format_stat(condition_count)} normalized conditions. Current condition search: {query_label}."
+            f"and {format_stat(condition_count)} normalized conditions, {status_scope}. Current condition search: {query_label}."
         )
 
         table_rows = build_table_rows(filtered)

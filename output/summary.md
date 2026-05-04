@@ -7,7 +7,9 @@ Filtered `ClinicalTrials.gov` export focused on industry-sponsored interventiona
 ## Headline Metrics
 
 - raw trial rows: 583272
+- comparable rows before inactive filter: 70260
 - cleaned trial count: 60570
+- inactive rows available via toggle: 9690
 - excluded rows: 522702
 - retained share: 10.4%
 - start-year window represented: 2000 to 2025
@@ -17,11 +19,11 @@ Filtered `ClinicalTrials.gov` export focused on industry-sponsored interventiona
 ## Core Filter Steps
 
 - Started with the full ClinicalTrials.gov CSV export.
-- Removed terminated, withdrawn, suspended, and unavailable studies.
 - Limited the set to industry-funded interventional studies.
-- Kept drug, biologic, genetic, and combination-product interventions.
+- Kept drug, biological, genetic, and combination-product interventions.
 - Excluded device, behavioral, procedure, diagnostic-test, dietary-supplement, other, and radiation-led intervention rows.
 - Excluded healthy-only condition rows and limited the time window to start years 2000-2025.
+- Default dashboard view removes terminated, withdrawn, suspended, and unavailable studies, but an inactive-trial toggle can add them back.
 - When Start Date was missing in this export, used First Posted as the fallback start-date proxy.
 
 ## Top Countries

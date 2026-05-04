@@ -112,11 +112,11 @@ DASHBOARD_COLUMNS = [
 
 FILTER_STEPS = [
     "Started with the full ClinicalTrials.gov CSV export.",
-    "Removed terminated, withdrawn, suspended, and unavailable studies.",
     "Limited the set to industry-funded interventional studies.",
     "Kept drug, biological, genetic, and combination-product interventions.",
     "Excluded device, behavioral, procedure, diagnostic-test, dietary-supplement, other, and radiation-led intervention rows.",
     "Excluded healthy-only condition rows and limited the time window to start years 2000-2025.",
+    "Default dashboard view removes terminated, withdrawn, suspended, and unavailable studies, but an inactive-trial toggle can add them back.",
     "When Start Date was missing in this export, used First Posted as the fallback start-date proxy.",
 ]
 
@@ -239,10 +239,8 @@ def ensure_optional_columns(df: pd.DataFrame) -> pd.DataFrame:
     return work
 
 
-def build_clean_dataset(df: pd.DataFrame, start_year: int, end_year: int) -> pd.DataFrame:
+def build_candidate_dataset(df: pd.DataFrame, start_year: int, end_year: int) -> pd.DataFrame:
     work = ensure_optional_columns(df)
-
-    work = work[~work["Study Status"].isin(INACTIVE_STATUSES)].copy()
 
     work["Intervention_Types_List"] = work["Interventions"].map(extract_intervention_types)
     work["Has_Focus_Intervention"] = work["Intervention_Types_List"].map(
@@ -354,6 +352,19 @@ def build_clean_dataset(df: pd.DataFrame, start_year: int, end_year: int) -> pd.
     )
 
 
+def build_clean_dataset(
+    df: pd.DataFrame,
+    start_year: int,
+    end_year: int,
+    *,
+    include_inactive: bool = False,
+) -> pd.DataFrame:
+    work = build_candidate_dataset(df, start_year=start_year, end_year=end_year)
+    if not include_inactive:
+        work = work[~work["Study Status"].isin(INACTIVE_STATUSES)].copy()
+    return work
+
+
 def write_table(df: pd.DataFrame, path: Path) -> None:
     df.to_csv(path, index=False)
 
@@ -362,6 +373,7 @@ def build_summary_tables(
     cleaned: pd.DataFrame,
     output_dir: Path,
     raw_row_count: int,
+    comparable_row_count: int,
 ) -> dict[str, object]:
     trials_by_start_year = (
         cleaned.groupby("Start Year")
@@ -425,10 +437,13 @@ def build_summary_tables(
     excluded_row_count = raw_row_count - len(cleaned)
     retained_pct = round((len(cleaned) / raw_row_count) * 100, 1) if raw_row_count else None
     excluded_pct = round((excluded_row_count / raw_row_count) * 100, 1) if raw_row_count else None
+    inactive_trial_count = comparable_row_count - len(cleaned)
 
     summary = {
         "raw_trial_count": int(raw_row_count),
+        "comparable_trial_count": int(comparable_row_count),
         "cleaned_trial_count": int(len(cleaned)),
+        "inactive_trial_count": int(inactive_trial_count),
         "excluded_trial_count": int(excluded_row_count),
         "retained_pct": retained_pct,
         "excluded_pct": excluded_pct,
@@ -480,7 +495,9 @@ Filtered `ClinicalTrials.gov` export focused on industry-sponsored interventiona
 ## Headline Metrics
 
 - raw trial rows: {summary.get("raw_trial_count")}
+- comparable rows before inactive filter: {summary.get("comparable_trial_count")}
 - cleaned trial count: {summary.get("cleaned_trial_count")}
+- inactive rows available via toggle: {summary.get("inactive_trial_count")}
 - excluded rows: {summary.get("excluded_trial_count")}
 - retained share: {summary.get("retained_pct")}%
 - start-year window represented: {summary.get("start_year_min")} to {summary.get("start_year_max")}
@@ -626,10 +643,21 @@ def main() -> None:
     df = pd.read_csv(input_path)
     validate_columns(df)
 
-    cleaned = build_clean_dataset(df, start_year=args.start_year, end_year=args.end_year)
+    comparable = build_clean_dataset(
+        df,
+        start_year=args.start_year,
+        end_year=args.end_year,
+        include_inactive=True,
+    )
+    cleaned = comparable[~comparable["Study Status"].isin(INACTIVE_STATUSES)].copy()
     write_table(cleaned, output_dir / "cleaned_industry_trials.csv")
-    write_dashboard_dataset(cleaned, output_dir)
-    build_summary_tables(cleaned, output_dir, raw_row_count=len(df))
+    write_dashboard_dataset(comparable, output_dir)
+    build_summary_tables(
+        cleaned,
+        output_dir,
+        raw_row_count=len(df),
+        comparable_row_count=len(comparable),
+    )
     save_charts(cleaned, output_dir)
 
     print(f"Built clinical trials landscape with {len(cleaned):,} filtered rows.")
