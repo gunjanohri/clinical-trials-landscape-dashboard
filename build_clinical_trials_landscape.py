@@ -110,6 +110,16 @@ DASHBOARD_COLUMNS = [
     "Country",
 ]
 
+FILTER_STEPS = [
+    "Started with the full ClinicalTrials.gov CSV export.",
+    "Removed terminated, withdrawn, suspended, and unavailable studies.",
+    "Limited the set to industry-funded interventional studies.",
+    "Kept drug, biological, genetic, and combination-product interventions.",
+    "Excluded device, behavioral, procedure, diagnostic-test, dietary-supplement, other, and radiation-led intervention rows.",
+    "Excluded healthy-only condition rows and limited the time window to start years 2000-2025.",
+    "When Start Date was missing in this export, used First Posted as the fallback start-date proxy.",
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -348,7 +358,11 @@ def write_table(df: pd.DataFrame, path: Path) -> None:
     df.to_csv(path, index=False)
 
 
-def build_summary_tables(cleaned: pd.DataFrame, output_dir: Path) -> dict[str, object]:
+def build_summary_tables(
+    cleaned: pd.DataFrame,
+    output_dir: Path,
+    raw_row_count: int,
+) -> dict[str, object]:
     trials_by_start_year = (
         cleaned.groupby("Start Year")
         .size()
@@ -408,10 +422,19 @@ def build_summary_tables(cleaned: pd.DataFrame, output_dir: Path) -> dict[str, o
     )
     write_table(duration_summary, output_dir / "duration_summary.csv")
 
+    excluded_row_count = raw_row_count - len(cleaned)
+    retained_pct = round((len(cleaned) / raw_row_count) * 100, 1) if raw_row_count else None
+    excluded_pct = round((excluded_row_count / raw_row_count) * 100, 1) if raw_row_count else None
+
     summary = {
+        "raw_trial_count": int(raw_row_count),
         "cleaned_trial_count": int(len(cleaned)),
+        "excluded_trial_count": int(excluded_row_count),
+        "retained_pct": retained_pct,
+        "excluded_pct": excluded_pct,
         "start_year_min": int(cleaned["Start Year"].min()) if not cleaned.empty else None,
         "start_year_max": int(cleaned["Start Year"].max()) if not cleaned.empty else None,
+        "filter_steps": FILTER_STEPS,
         "top_conditions": dataframe_records(top_conditions.head(5)),
         "top_countries": dataframe_records(top_countries.head(5)),
         "intervention_mix": dataframe_records(intervention_mix),
@@ -456,10 +479,17 @@ Filtered `ClinicalTrials.gov` export focused on industry-sponsored interventiona
 
 ## Headline Metrics
 
+- raw trial rows: {summary.get("raw_trial_count")}
 - cleaned trial count: {summary.get("cleaned_trial_count")}
+- excluded rows: {summary.get("excluded_trial_count")}
+- retained share: {summary.get("retained_pct")}%
 - start-year window represented: {summary.get("start_year_min")} to {summary.get("start_year_max")}
 - median duration in years: {duration.get("median")}
 - mean duration in years: {duration.get("mean")}
+
+## Core Filter Steps
+
+{chr(10).join(f"- {step}" for step in summary.get("filter_steps", []))}
 
 ## Top Countries
 
@@ -599,7 +629,7 @@ def main() -> None:
     cleaned = build_clean_dataset(df, start_year=args.start_year, end_year=args.end_year)
     write_table(cleaned, output_dir / "cleaned_industry_trials.csv")
     write_dashboard_dataset(cleaned, output_dir)
-    build_summary_tables(cleaned, output_dir)
+    build_summary_tables(cleaned, output_dir, raw_row_count=len(df))
     save_charts(cleaned, output_dir)
 
     print(f"Built clinical trials landscape with {len(cleaned):,} filtered rows.")

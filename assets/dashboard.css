@@ -249,6 +249,65 @@ body {
     var(--paper);
 }
 
+.methodology-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(420px, 1.05fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.methodology-card {
+  min-height: 100%;
+}
+
+.methodology-card > p:first-child {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+
+.methodology-card h2 {
+  margin: 0 0 14px;
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+
+.methodology-card-primary {
+  background:
+    linear-gradient(135deg, rgba(29, 78, 216, 0.08), rgba(15, 118, 110, 0.08)),
+    var(--paper);
+}
+
+.methodology-metric {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.methodology-metric strong {
+  font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.methodology-metric span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.methodology-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.methodology-list li + li {
+  margin-top: 10px;
+}
+
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -355,6 +414,7 @@ body {
   .hero,
   .filters-grid,
   .kpi-grid,
+  .methodology-grid,
   .notes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -373,6 +433,7 @@ body {
   .hero,
   .filters-grid,
   .kpi-grid,
+  .methodology-grid,
   .chart-grid,
   .notes-grid {
     grid-template-columns: 1fr;

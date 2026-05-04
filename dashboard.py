@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -20,6 +21,7 @@ RAW_DATA_PATH = BASE_DIR / "raw" / "ctg-studies.csv"
 OUTPUT_DIR = BASE_DIR / "output"
 DASHBOARD_DATA_PATH = OUTPUT_DIR / "dashboard_trials.csv"
 CLEANED_DATA_PATH = OUTPUT_DIR / "cleaned_industry_trials.csv"
+SUMMARY_PATH = OUTPUT_DIR / "summary.json"
 DEFAULT_START_YEAR = 2000
 DEFAULT_END_YEAR = 2025
 CHART_HEIGHT = 360
@@ -45,6 +47,12 @@ PHASE_ORDER = [
     "PHASE3",
     "PHASE4",
 ]
+
+
+def load_project_summary() -> dict[str, object]:
+    if not SUMMARY_PATH.exists():
+        return {}
+    return json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
 
 
 def load_dashboard_dataset() -> tuple[pd.DataFrame | None, str | None]:
@@ -414,6 +422,7 @@ def build_year_marks(min_year: int, max_year: int) -> dict[int, str]:
 
 
 TRIALS_DF, LOAD_ERROR = load_dashboard_dataset()
+PROJECT_SUMMARY = load_project_summary()
 
 if TRIALS_DF is not None and not TRIALS_DF.empty:
     YEAR_MIN = int(TRIALS_DF["Start Year"].min())
@@ -429,6 +438,12 @@ else:
     COUNTRY_OPTIONS = []
     PHASE_OPTIONS = []
     INTERVENTION_OPTIONS = INTERVENTION_PRIORITY[:]
+
+RAW_TRIAL_COUNT = PROJECT_SUMMARY.get("raw_trial_count")
+CLEANED_TRIAL_COUNT = PROJECT_SUMMARY.get("cleaned_trial_count")
+EXCLUDED_TRIAL_COUNT = PROJECT_SUMMARY.get("excluded_trial_count")
+EXCLUDED_PCT = PROJECT_SUMMARY.get("excluded_pct")
+FILTER_STEPS = PROJECT_SUMMARY.get("filter_steps", [])
 app = Dash(__name__)
 app.title = "Clinical Trials Landscape Dashboard"
 server = app.server
@@ -624,6 +639,53 @@ def build_dashboard_layout() -> html.Div:
             html.Section(
                 className="panel narrative-strip",
                 children=[html.P(id="filter-summary")],
+            ),
+            html.Section(
+                className="methodology-grid",
+                children=[
+                    html.Article(
+                        className="panel methodology-card methodology-card-primary",
+                        children=[
+                            html.P("Methodology"),
+                            html.H2("How the registry was narrowed"),
+                            html.Div(
+                                className="methodology-metric",
+                                children=[
+                                    html.Strong(
+                                        (
+                                            f"{RAW_TRIAL_COUNT:,} rows -> {CLEANED_TRIAL_COUNT:,} filtered trials"
+                                            if RAW_TRIAL_COUNT and CLEANED_TRIAL_COUNT
+                                            else "ClinicalTrials.gov -> filtered dashboard set"
+                                        )
+                                    ),
+                                    html.Span(
+                                        (
+                                            f"{EXCLUDED_TRIAL_COUNT:,} rows removed ({EXCLUDED_PCT}% excluded)."
+                                            if EXCLUDED_TRIAL_COUNT is not None and EXCLUDED_PCT is not None
+                                            else "This dashboard shows a cleaned subset rather than the full registry."
+                                        )
+                                    ),
+                                ],
+                            ),
+                            html.P(
+                                "This published build focuses on comparable industry-sponsored interventional drug-development records, not all studies on ClinicalTrials.gov."
+                            ),
+                        ],
+                    ),
+                    html.Article(
+                        className="panel methodology-card",
+                        children=[
+                            html.P("Filter logic"),
+                            html.H2("What was kept vs removed"),
+                            html.Ul(
+                                className="methodology-list",
+                                children=[html.Li(step) for step in FILTER_STEPS] or [
+                                    html.Li("See the project README for the current filter logic.")
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
             ),
             dcc.Loading(
                 type="default",
