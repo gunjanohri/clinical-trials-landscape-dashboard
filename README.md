@@ -2,6 +2,8 @@
 
 This project turns a raw `ClinicalTrials.gov` CSV export into a cleaner, publishable analysis focused on how `industry-sponsored` drug development clusters by year, geography, phase, intervention type, and disease area.
 
+Created with Codex under the direction of Gunjan Ohri.
+
 ## Best Public Framing
 
 The most credible first story is not "all clinical trials."
@@ -123,3 +125,7 @@ Helpful docs:
 - [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages)
 - [GitHub large file limits](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github)
 - [Render Web Services](https://render.com/docs/web-services/)
+
+## Attribution
+
+This dashboard project was created with Codex under the direction of Gunjan Ohri.

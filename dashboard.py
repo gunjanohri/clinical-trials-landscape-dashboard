@@ -52,6 +52,15 @@ PHASE_COLOR_SEQUENCE = [
     PALETTE["navy_pale"],
 ]
 
+COUNTRY_COLOR_SEQUENCE = [
+    PALETTE["navy_dark"],
+    PALETTE["teal_dark"],
+    PALETTE["navy"],
+    PALETTE["teal"],
+    PALETTE["navy_light"],
+    PALETTE["teal_light"],
+]
+
 PHASE_ORDER = [
     "EARLY_PHASE1",
     "PHASE1",
@@ -346,28 +355,54 @@ def build_top_countries_figure(filtered: pd.DataFrame) -> go.Figure:
     if filtered.empty:
         return build_empty_figure("No country distribution available for the current filters.")
 
-    country_series = filtered.loc[filtered["Country"].ne("Unspecified"), "Country"]
-    if country_series.empty:
+    specified = filtered.loc[filtered["Country"].ne("Unspecified")].copy()
+    if specified.empty:
         return build_empty_figure("No specified country values are available for the selected rows.")
 
-    country_counts = (
-        country_series
+    top_countries = (
+        specified["Country"]
         .value_counts()
-        .head(10)
-        .sort_values()
-        .rename_axis("Country")
+        .head(5)
+        .index
+        .tolist()
+    )
+
+    country_trend = (
+        specified[specified["Country"].isin(top_countries)]
+        .groupby(["Start Year", "Country"])
+        .size()
         .reset_index(name="Trial Count")
+        .sort_values(["Start Year", "Trial Count"], ascending=[True, False])
     )
-    fig = px.bar(
-        country_counts,
-        x="Trial Count",
-        y="Country",
-        orientation="h",
-        color="Trial Count",
-        color_continuous_scale=[PALETTE["teal_pale"], PALETTE["teal_dark"]],
+    if country_trend.empty:
+        return build_empty_figure("No country trend is available for the selected rows.")
+
+    fig = px.line(
+        country_trend,
+        x="Start Year",
+        y="Trial Count",
+        color="Country",
+        markers=True,
+        color_discrete_sequence=COUNTRY_COLOR_SEQUENCE,
+        category_orders={"Country": top_countries},
     )
-    fig.update_coloraxes(showscale=False)
-    return style_figure(fig, "Top Countries by First Listed Site")
+    fig.update_traces(line={"width": 3}, marker={"size": 7})
+    fig.update_xaxes(dtick=1, tickmode="linear", tickangle=-45, automargin=True)
+    fig.update_yaxes(title="Trial count")
+    fig = style_figure(fig, "Leading Countries by Trial Starts")
+    fig.update_layout(
+        margin={"l": 24, "r": 150, "t": 64, "b": 88},
+        legend={
+            "orientation": "v",
+            "yanchor": "top",
+            "y": 1,
+            "xanchor": "left",
+            "x": 1.02,
+            "font": {"size": 11},
+            "title": {"text": "Country"},
+        },
+    )
+    return fig
 
 
 def build_top_conditions_figure(filtered: pd.DataFrame) -> go.Figure:
@@ -572,6 +607,10 @@ def build_dashboard_layout() -> html.Div:
                                     "drug, biologic, genetic, and combination-product "
                                     "trials from 2000-2026."
                                 ),
+                                className="hero-description",
+                            ),
+                            html.P(
+                                "Created with Codex under the direction of Gunjan Ohri.",
                                 className="hero-description",
                             ),
                         ],
